@@ -1,0 +1,15 @@
+if SHIELD_ENKI
+
+config ZMK_KEYBOARD_NAME
+    default "Enki"
+
+config ZMK_BLE
+    default y
+
+config ZMK_USB
+    default y
+
+config ZMK_SPLIT
+    default n
+
+endif # SHIELD_ENKI

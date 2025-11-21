@@ -2,8 +2,6 @@ manifest:
   remotes:
     - name: zmkfirmware
       url-base: https://github.com/zmkfirmware
-    - name: prospector
-      url-base: https://github.com/t-ogura
     - name: halfdane
       url-base: https://github.com/halfdane
     - name: ssbb
@@ -17,10 +15,6 @@ manifest:
       remote: zmkfirmware
       revision: main
       import: app/west.yml
-    - name: prospector-zmk-module
-      remote: prospector
-      revision: ed55c164a6c44616a0392b3b4d16ea4d4bd67b91
-      path: modules/prospector-zmk-module
 
     - name: zmk-pmw3610-driver
       remote: badjeff

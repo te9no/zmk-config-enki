@@ -1,0 +1,195 @@
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/input/input-event-codes.h>
+#include <physical_layouts.dtsi>
+
+// Include input processor modules
+#include <input/processors.dtsi>
+#include <dt-bindings/zmk/input_transform.h>
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+#include <behaviors/input_processor_gestures.dtsi>
+#include <behaviors/input_processor_absolute_to_relative.dtsi>
+#include <mouse-gesture.dtsi>
+
+/ {
+    chosen {
+        zephyr,display = &st7789v;
+        zmk,kscan = &kscan0;
+        zmk,physical-layout = &default_layout;
+    };
+
+    default_layout: default_layout {
+        compatible = "zmk,physical-layout";
+        display-name = "Enki Counter";
+        transform = <&default_transform>;
+
+        keys = <&key_physical_attrs 100 100 0 0 0 0 0>;
+    };
+
+    default_transform: keymap_transform_0 {
+        compatible = "zmk,matrix-transform";
+        columns = <1>;
+        rows = <1>;
+        map = <RC(0,0)>;
+    };
+
+    kscan0: kscan {
+        compatible = "zmk,kscan-gpio-direct";
+        wakeup-source;
+        input-gpios = <&gpio0 16 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+    };
+
+};
+
+&spi2 {
+    status = "disabled";
+};
+
+&pinctrl {
+    spi3_default: spi3_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 1, 15)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 29)>;
+        };
+    };
+
+    spi3_sleep: spi3_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 1, 15)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 29)>;
+            low-power-enable;
+        };
+    };
+
+    spi1_default: spi1_default {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 1, 15)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 29)>;
+        };
+    };
+
+    spi1_sleep: spi1_sleep {
+        group1 {
+            psels = <NRF_PSEL(SPIM_SCK, 1, 13)>,
+                    <NRF_PSEL(SPIM_MOSI, 1, 15)>,
+                    <NRF_PSEL(SPIM_MISO, 0, 29)>;
+            low-power-enable;
+        };
+    };
+
+    i2c0_default: i2c0_default {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 4)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 5)>;
+        };
+    };
+
+    i2c0_sleep: i2c0_sleep {
+        group1 {
+            psels = <NRF_PSEL(TWIM_SDA, 0, 4)>,
+                    <NRF_PSEL(TWIM_SCL, 0, 5)>;
+            low-power-enable;
+        };
+    };
+};
+
+&spi3 {
+    status = "okay";
+    pinctrl-0 = <&spi3_default>;
+    pinctrl-1 = <&spi3_sleep>;
+    pinctrl-names = "default", "sleep";
+    cs-gpios = <&xiao_d 9 GPIO_ACTIVE_LOW>,
+              <&xiao_d 2 GPIO_ACTIVE_LOW>;
+
+    st7789v: st7789v@0 {
+        compatible = "sitronix,st7789v";
+        spi-max-frequency = <1000000>;
+        reg = <0>;
+        cmd-data-gpios = <&xiao_d 7 GPIO_ACTIVE_LOW>;
+        reset-gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+        width = <240>;
+        height = <280>;
+        x-offset = <0>;
+        y-offset = <20>;
+        vcom = <0x19>;
+        gctrl = <0x35>;
+        vrhs = <0x12>;
+        vdvs = <0x20>;
+        mdac = <0x00>;
+        gamma = <0x01>;
+        colmod = <0x05>;
+        lcm = <0x2c>;
+        porch-param = [0c 0c 00 33 33];
+        cmd2en-param = [5a 69 02 01];
+        pwctrl1-param = [a4 a1];
+        pvgam-param = [D0 04 0D 11 13 2B 3F 54 4C 18 0D 0B 1F 23];
+        nvgam-param = [D0 04 0C 11 13 2C 3F 44 51 2F 1F 1F 20 23];
+        ram-param = [00 F0];
+        rgb-param = [CD 08 14];
+    };
+
+    trackball: trackball@1 {
+        status = "okay";
+        compatible = "pixart,pmw3610";
+        reg = <1>;
+        spi-max-frequency = <1000000>;
+        irq-gpios = <&gpio0 9 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        cpi = <800>;
+        evt-type = <INPUT_EV_REL>;
+        x-input-code = <INPUT_REL_X>;
+        y-input-code = <INPUT_REL_Y>;
+        force-awake;
+    };
+};
+
+&i2c0 {
+    status = "okay";
+    pinctrl-0 = <&i2c0_default>;
+    pinctrl-1 = <&i2c0_sleep>;
+    pinctrl-names = "default", "sleep";
+
+    touch_sensor: glidepoint: cst816s@15 {
+        compatible = "hynitron,cst816s";
+        reg = <0x15>;
+        status = "okay";
+        irq-gpios = <&xiao_d 0 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
+        rst-gpios = <&xiao_d 1 GPIO_ACTIVE_LOW>;
+    };
+};
+
+/ {
+    touch_listener: touch_listener {
+        compatible = "zmk,input-listener";
+        device = <&touch_sensor>;
+        status = "okay";
+        input-processors = <
+            &zip_gestures                                                  // Tap detection and trackpad gestures
+            &zip_absolute_to_relative                                      // Convert absolute to relative coordinates
+            &zip_xy_transform (INPUT_TRANSFORM_XY_SWAP | INPUT_TRANSFORM_Y_INVERT)  // Rotate 90° for display orientation
+            &zip_xy_scaler 4 1                                            // 4x scaling for better cursor movement
+            // &zip_temp_layer 1 200                                          // Auto-activate layer 1 for 200ms on movement
+            &zip_mouse_gesture                                            // Gesture recognition
+        >;
+    };
+
+    trackball_listener: trackball_listener {
+        compatible = "zmk,input-listener";
+        device = <&trackball>;
+        status = "okay";
+        input-processors = <
+            &zip_xy_transform (INPUT_TRANSFORM_X_INVERT | INPUT_TRANSFORM_Y_INVERT)
+            &zip_temp_layer 1 200
+        >;
+    };
+};
+
+&gpio1 {
+    display_bl_on: display_bl_on {
+        gpio-hog;
+        gpios = <11 GPIO_ACTIVE_HIGH>;
+        output-high;
+    };
+};
