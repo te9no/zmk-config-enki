@@ -6,10 +6,10 @@ config ZMK_KEYBOARD_NAME
 config ZMK_BLE
     default y
 
-config ZMK_USB
+config ZMK_SPLIT
     default y
 
-config ZMK_SPLIT
+config ZMK_SPLIT_ROLE_CENTRAL
     default n
 
 endif # SHIELD_ENKI
