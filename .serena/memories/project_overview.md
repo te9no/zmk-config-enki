@@ -1,0 +1,5 @@
+- ZMK firmware configuration for the custom Enki keyboard/shield that targets the Seeeduino Xiao BLE MCU board.
+- Uses the stock ZMK tree (pulled via `west.yml`) plus additional modules for gestures/listeners/etc.
+- Tech stack: Zephyr RTOS + ZMK (C, DTS overlays, Kconfig, keymap `.keymap`), LVGL for display widgets, build orchestrated by `west`/`cmake`/`ninja`.
+- Layout: `boards/shields/enki/` holds the shield definition (Kconfig, DTS overlay, shield config, and custom C sources such as `src/key_counter_screen.c`); `config/` holds top-level `west.yml` and keymap; `gif/` reserved for LCD animation assets; `build.yaml` specifies CI-style build matrix.
+- Zephyr module file (`zephyr/module.yml`) makes this repo a `board_root`, so downstream builds see the custom shield and config automatically.

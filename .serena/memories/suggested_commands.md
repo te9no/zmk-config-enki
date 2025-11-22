@@ -1,0 +1,5 @@
+- `west init -l config && west update` – initialize and pull the ZMK + module dependencies defined in `config/west.yml`.
+- `west build -p -b seeeduino_xiao_ble enki` – build the Enki shield firmware for the Seeeduino Xiao BLE MCU.
+- `west flash` or `west build -t flash` – flash the resulting firmware onto the MCU after a successful build.
+- `west build -t run` – run host-side simulations/tests when applicable (rare for ZMK, but available for some modules).
+- `ninja -C build/zephyr` – low-level rebuild if you need to re-run Ninja directly inside an existing build dir.

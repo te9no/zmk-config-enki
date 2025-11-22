@@ -1,0 +1,4 @@
+- Firmware/logic written in C following ZMK/Zephyr conventions: snake_case identifiers, `static` helpers when possible, `LOG_MODULE_DECLARE`, and LVGL API usage.
+- DTS/Kconfig/overlay files follow standard Zephyr syntax; keymaps rely on ZMK keymap DSL (`.keymap`).
+- Keep code minimal and event-driven; avoid heap use, prefer static or stack allocations; include ZMK/Zephyr headers explicitly.
+- Comments used sparingly for non-obvious logic; default encoding UTF-8/ASCII.

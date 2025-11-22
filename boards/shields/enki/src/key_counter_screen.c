@@ -2,6 +2,11 @@
 #include <stdio.h>
 #include <zephyr/kernel.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
+
+#if IS_ENABLED(CONFIG_LV_USE_GIF)
+#include "enki_logo_gif.h"
+#endif
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 #include <zmk/display/status_screen.h>
@@ -10,6 +15,37 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
 static lv_obj_t *counter_label;
 static uint32_t key_press_count;
+
+#if IS_ENABLED(CONFIG_LV_USE_GIF)
+static lv_obj_t *boot_gif;
+
+static const lv_img_dsc_t enki_logo_gif_dsc = {
+    .header =
+        {
+            .cf = LV_IMG_CF_RAW,
+            .always_zero = 0,
+            .reserved = 0,
+            .w = ENKI_LOGO_GIF_WIDTH,
+            .h = ENKI_LOGO_GIF_HEIGHT,
+        },
+    .data_size = ENKI_LOGO_GIF_DATA_SIZE,
+    .data = ENKI_LOGO_GIF_DATA,
+};
+
+static void boot_gif_ready_cb(lv_event_t *e) {
+    if (lv_event_get_code(e) != LV_EVENT_READY) {
+        return;
+    }
+
+    lv_obj_t *gif = lv_event_get_target(e);
+    lv_obj_del(gif);
+    boot_gif = NULL;
+
+    if (counter_label) {
+        lv_obj_clear_flag(counter_label, LV_OBJ_FLAG_HIDDEN);
+    }
+}
+#endif
 
 static void update_counter_label(void) {
     if (!counter_label) {
@@ -45,6 +81,16 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_style_text_color(counter_label, lv_color_hex(0x00d8ff), 0);
     lv_obj_set_style_text_font(counter_label, &lv_font_montserrat_24, 0);
     lv_obj_center(counter_label);
+
+#if IS_ENABLED(CONFIG_LV_USE_GIF)
+    boot_gif = lv_gif_create(screen);
+    if (boot_gif) {
+        lv_obj_add_flag(counter_label, LV_OBJ_FLAG_HIDDEN);
+        lv_obj_center(boot_gif);
+        lv_gif_set_src(boot_gif, &enki_logo_gif_dsc);
+        lv_obj_add_event_cb(boot_gif, boot_gif_ready_cb, LV_EVENT_READY, NULL);
+    }
+#endif
 
     return screen;
 }

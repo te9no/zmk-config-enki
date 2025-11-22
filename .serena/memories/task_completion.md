@@ -1,0 +1,4 @@
+- After edits, run `west build -p -b seeeduino_xiao_ble enki` to ensure firmware still compiles.
+- If display- or input-related functionality changed, load firmware on hardware and confirm behavior manually.
+- Clean artifacts with `west build -t clean` if configuration files changed significantly; rebuild afterward.
+- Document new configs/scripts in repo and keep generated assets (e.g., under `gif/`) committed if they are source artifacts rather than build outputs.
