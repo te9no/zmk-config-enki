@@ -80,6 +80,20 @@
         };
     };
 
+    pwm1_default: pwm1_default {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 1, 11)>;  // Pin 6 (D6) = P1.11 = Backlight PWM
+            nordic,invert;
+        };
+    };
+
+    pwm1_sleep: pwm1_sleep {
+        group1 {
+            psels = <NRF_PSEL(PWM_OUT0, 1, 11)>;  // Pin 6 (D6) = P1.11 = Backlight PWM
+            low-power-enable;
+        };
+    };
+
     i2c0_default: i2c0_default {
         group1 {
             psels = <NRF_PSEL(TWIM_SDA, 0, 4)>,
@@ -186,10 +200,10 @@
     };
 };
 
-&gpio1 {
-    display_bl_on: display_bl_on {
-        gpio-hog;
-        gpios = <11 GPIO_ACTIVE_HIGH>;
-        output-high;
-    };
+// PWM1 configuration for backlight (Pin 6 = P1.11)
+&pwm1 {
+    status = "okay";
+    pinctrl-0 = <&pwm1_default>;
+    pinctrl-1 = <&pwm1_sleep>;
+    pinctrl-names = "default", "sleep";
 };
