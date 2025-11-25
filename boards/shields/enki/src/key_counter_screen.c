@@ -9,9 +9,12 @@ LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 #include <zmk/events/keycode_state_changed.h>
 #include "enki_logo_gif.h"
 
+#define ENKI_SPLASH_DEFAULT_DURATION_MS 2000U
+
 static lv_obj_t *counter_label;
 static lv_obj_t *counter_container;
-static lv_obj_t *logo_gif_obj;
+static lv_obj_t *splash_obj;
+static lv_timer_t *splash_timer;
 static uint32_t key_press_count;
 
 static void update_counter_label(void) {
@@ -35,21 +38,72 @@ static int counter_event_handler(const zmk_event_t *eh) {
     return ZMK_EV_EVENT_BUBBLE;
 }
 
+static void cancel_splash_timer(void) {
+    if (!splash_timer) {
+        return;
+    }
+
+    lv_timer_del(splash_timer);
+    splash_timer = NULL;
+}
+
 static void show_counter_ui(void) {
     if (!counter_container) {
         return;
     }
 
+    cancel_splash_timer();
     lv_obj_clear_flag(counter_container, LV_OBJ_FLAG_HIDDEN);
-    if (logo_gif_obj) {
-        lv_obj_del_async(logo_gif_obj);
-        logo_gif_obj = NULL;
+    if (splash_obj) {
+        lv_obj_del_async(splash_obj);
+        splash_obj = NULL;
     }
 }
 
-static void logo_animation_finished_cb(lv_event_t *event) {
-    LV_UNUSED(event);
+static void splash_timer_cb(lv_timer_t *timer) {
+    if (timer == splash_timer) {
+        splash_timer = NULL;
+    }
+
+    lv_timer_del(timer);
     show_counter_ui();
+}
+
+static void start_splash_timer(uint32_t duration_ms) {
+    if (!duration_ms) {
+        show_counter_ui();
+        return;
+    }
+
+    cancel_splash_timer();
+    splash_timer = lv_timer_create(splash_timer_cb, duration_ms, NULL);
+    if (!splash_timer) {
+        show_counter_ui();
+    }
+}
+
+static uint32_t calculate_splash_duration_ms(void) {
+#if LV_USE_GIF
+    uint32_t duration = 0U;
+    const size_t delays_len =
+        sizeof(ENKI_LOGO_GIF_FRAME_DELAYS_MS) / sizeof(ENKI_LOGO_GIF_FRAME_DELAYS_MS[0]);
+    for (size_t i = 0; i < delays_len; i++) {
+        duration += ENKI_LOGO_GIF_FRAME_DELAYS_MS[i];
+    }
+
+    if (duration > 0U) {
+        return duration;
+    }
+#endif
+    return ENKI_SPLASH_DEFAULT_DURATION_MS;
+}
+
+static void screen_cleanup_event_cb(lv_event_t *event) {
+    LV_UNUSED(event);
+    cancel_splash_timer();
+    counter_label = NULL;
+    counter_container = NULL;
+    splash_obj = NULL;
 }
 
 ZMK_LISTENER(enki_counter_listener, counter_event_handler);
@@ -59,6 +113,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_t *screen = lv_obj_create(NULL);
     lv_obj_set_style_bg_color(screen, lv_color_hex(0x000000), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(screen, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_add_event_cb(screen, screen_cleanup_event_cb, LV_EVENT_DELETE, NULL);
 
     counter_container = lv_obj_create(screen);
     lv_obj_remove_style_all(counter_container);
@@ -72,16 +127,25 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_center(counter_label);
 
 #if LV_USE_GIF
-    logo_gif_obj = lv_gif_create_from_data(screen, ENKI_LOGO_GIF_DATA);
-    if (logo_gif_obj) {
-        lv_obj_center(logo_gif_obj);
-        lv_gif_set_loop_count(logo_gif_obj, 1);
-        lv_obj_add_event_cb(logo_gif_obj, logo_animation_finished_cb, LV_EVENT_READY, NULL);
+    splash_obj = lv_gif_create_from_data(screen, ENKI_LOGO_GIF_DATA);
+    if (splash_obj) {
+        lv_obj_center(splash_obj);
+        lv_gif_set_loop_count(splash_obj, 1);
+        start_splash_timer(calculate_splash_duration_ms());
     } else {
         show_counter_ui();
     }
 #else
-    show_counter_ui();
+    splash_obj = lv_label_create(screen);
+    if (splash_obj) {
+        lv_label_set_text(splash_obj, "Enki");
+        lv_obj_set_style_text_color(splash_obj, lv_color_hex(0x00d8ff), 0);
+        lv_obj_set_style_text_font(splash_obj, &lv_font_montserrat_24, 0);
+        lv_obj_center(splash_obj);
+        start_splash_timer(ENKI_SPLASH_DEFAULT_DURATION_MS);
+    } else {
+        show_counter_ui();
+    }
 #endif
 
     return screen;

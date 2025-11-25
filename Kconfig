@@ -1,0 +1,5 @@
+#
+# Enki config top-level Kconfig to satisfy Zephyr module requirements.
+#
+
+rsource "boards/shields/enki/Kconfig.shield"
