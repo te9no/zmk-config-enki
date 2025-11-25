@@ -1,2 +1,10 @@
 config SHIELD_ENKI
     def_bool $(shields_list_contains,ENKI)
+
+config ENKI_BACKLIGHT_BRIGHTNESS_PCT
+    int "Enki backlight brightness percent"
+    range 0 100
+    default 50
+    help
+      Sets the default PWM duty cycle for the Enki backlight. The value is a
+      percentage (0-100) that will be applied during initialization.

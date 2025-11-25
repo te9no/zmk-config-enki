@@ -2,6 +2,7 @@
 #include <zephyr/drivers/pwm.h>
 #include <zephyr/init.h>
 #include <zephyr/logging/log.h>
+#include <zephyr/sys/util.h>
 
 LOG_MODULE_DECLARE(zmk, CONFIG_ZMK_LOG_LEVEL);
 
@@ -20,7 +21,9 @@ static int enki_backlight_init(const struct device *unused)
     }
 
     const uint32_t period = enki_backlight_pwm.period;
-    const uint32_t pulse = period / 2U; /* 50% duty cycle */
+    const uint32_t pulse = (uint32_t)MIN(
+        period,
+        DIV_ROUND_CLOSEST((uint64_t)period * CONFIG_ENKI_BACKLIGHT_BRIGHTNESS_PCT, 100U));
 
     int err = pwm_set_dt(&enki_backlight_pwm, period, pulse);
     if (err) {
