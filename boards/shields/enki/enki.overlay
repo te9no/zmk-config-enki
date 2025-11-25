@@ -1,5 +1,6 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/input/input-event-codes.h>
+#include <dt-bindings/pwm/pwm.h>
 #include <physical_layouts.dtsi>
 
 // Include input processor modules
@@ -12,6 +13,10 @@
 #include <mouse-gesture.dtsi>
 
 / {
+    aliases {
+        enkibacklightpwm = &enki_backlight_pwm_led;
+    };
+
     chosen {
         zephyr,display = &st7789v;
         zmk,kscan = &kscan0;
@@ -39,6 +44,16 @@
         input-gpios = <&gpio0 16 (GPIO_ACTIVE_LOW | GPIO_PULL_UP)>;
     };
 
+    backlight_pwm: backlight_pwm {
+        compatible = "pwm-leds";
+        status = "okay";
+
+        enki_backlight_pwm_led: enki_backlight_pwm_led {
+            status = "okay";
+            label = "ENKI_BACKLIGHT";
+            pwms = <&pwm1 0 PWM_MSEC(10) PWM_POLARITY_INVERTED>;
+        };
+    };
 };
 
 &spi2 {
